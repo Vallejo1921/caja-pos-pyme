@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Gracias por tu compra! — Descarga tu Suite PyME Pro</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --primary: #2563eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding: 30px 20px; display: flex; justify-content: center; align-items: center; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; max-width: 650px; width: 100%; padding: 32px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); text-align: center; }
+    .icon-success { width: 70px; height: 70px; background: rgba(16, 185, 129, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: var(--success); }
+    h1 { font-size: 1.8rem; margin-bottom: 8px; color: #f8fafc; }
+    p { color: var(--text-muted); font-size: 1rem; line-height: 1.5; margin-bottom: 24px; }
+    .btn-download {
+      display: inline-block; background: var(--success); color: white; text-decoration: none; font-size: 1.2rem; font-weight: bold; padding: 16px 32px; border-radius: 10px; box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4); transition: transform 0.2s, background 0.2s;
+    }
+    .btn-download:hover { background: #059669; transform: translateY(-2px); }
+    .files-list { text-align: left; background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin: 24px 0; }
+    .files-list h3 { font-size: 0.95rem; color: #38bdf8; margin-bottom: 10px; text-transform: uppercase; }
+    .files-list ul { list-style: none; }
+    .files-list li { padding: 6px 0; border-bottom: 1px solid #1e293b; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+    .files-list li:last-child { border-bottom: none; }
+    .support-box { font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="icon-success">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  
+  <h1>¡Pago Confirmado con Éxito!</h1>
+  <p>Tu orden ha sido procesada correctamente a través de PayPal. Ya puedes descargar tu paquete completo de la <b>Suite PyME & Freelance Pro 2026</b> con licencia de por vida.</p>
+
+  <a href="Suite_PyME_Pro_v1.zip" download class="btn-download">
+    ⬇️ Descargar Suite Completa (.ZIP)
+  </a>
+
+  <div class="files-list">
+    <h3>📦 Tu paquete incluye:</h3>
+    <ul>
+      <li>✅ <b>caja_pos_pro.html</b> — Terminal POS offline para celular o PC con corte y WhatsApp</li>
+      <li>✅ <b>cotizador_recibos_pro.html</b> — Generador de presupuestos, recibos y cotizaciones PDF</li>
+      <li>✅ <b>plantillas_excel/</b> — Hojas de cálculo de Control Financiero e Inventario con Stock Mínimo</li>
+      <li>✅ <b>GUIA_INICIO_RAPIDO.html</b> — Manual paso a paso en 3 minutos</li>
+    </ul>
+  </div>
+
+  <div class="support-box">
+    <p>¿Necesitas ayuda para instalarlo o tienes preguntas? Guarda esta página en tus marcadores. Nuestro soporte está listo para ayudarte en todo momento.</p>
+  </div>
+</div>
+
+<script>
+// Registrar descarga automática en métricas
+fetch('/api/confirmar_entrega', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url: window.location.href, timestamp: new Date().toISOString() })
+}).catch(()=>{});
+</script>
+
+</body>
+</html>

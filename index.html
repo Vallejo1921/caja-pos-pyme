@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suite PyME & Freelance Pro — Control de Ventas e Inventario sin Mensualidades</title>
+  <meta name="description" content="El sistema de punto de venta, control de caja y cotizaciones para pequeños negocios y freelancers. Pago único de $99 MXN, sin suscripciones de por vida.">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151c2c;
+      --card-border: #243049;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); line-height: 1.6; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+    /* Header */
+    header { padding: 20px 0; border-bottom: 1px solid var(--card-border); }
+    .nav { display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 1.3rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .nav-cta { background: var(--primary); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem; }
+
+    /* Hero */
+    .hero { text-align: center; padding: 70px 0 50px; }
+    .badge-promo {
+      display: inline-block; background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.3); padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px;
+    }
+    .hero h1 { font-size: 2.8rem; font-weight: 900; line-height: 1.2; margin-bottom: 20px; }
+    .hero h1 span { background: linear-gradient(90deg, #38bdf8, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 1.2rem; color: var(--text-muted); max-width: 780px; margin: 0 auto 30px; }
+    .hero-actions { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+    
+    .btn-main {
+      background: var(--success); color: white; padding: 16px 36px; border-radius: 10px; font-size: 1.2rem; font-weight: 800; text-decoration: none; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); transition: transform 0.2s, background 0.2s; border: none; cursor: pointer;
+    }
+    .btn-main:hover { background: #059669; transform: translateY(-2px); }
+    .btn-demo {
+      background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border); padding: 16px 28px; border-radius: 10px; font-size: 1.1rem; font-weight: 600; text-decoration: none; cursor: pointer;
+    }
+    .btn-demo:hover { background: #1e293b; border-color: var(--accent); }
+
+    .trust-bullets { display: flex; justify-content: center; gap: 20px; margin-top: 30px; font-size: 0.9rem; color: var(--text-muted); flex-wrap: wrap; }
+
+    /* Features Grid */
+    .section { padding: 60px 0; }
+    .section-title { text-align: center; font-size: 2rem; margin-bottom: 12px; }
+    .section-subtitle { text-align: center; color: var(--text-muted); margin-bottom: 40px; font-size: 1.05rem; }
+    
+    .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 28px; }
+    .card-icon { font-size: 2rem; margin-bottom: 14px; }
+    .card h3 { font-size: 1.25rem; margin-bottom: 10px; color: #f1f5f9; }
+    .card p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* Comparison Table */
+    .compare-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--card-border); }
+    .compare-table th, .compare-table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--card-border); }
+    .compare-table th { background: #0f172a; color: var(--text); }
+    .compare-table .highlight { background: rgba(37, 99, 235, 0.1); font-weight: bold; color: var(--accent); }
+
+    /* Pricing Section */
+    .pricing-box {
+      max-width: 520px; margin: 0 auto; background: var(--card-bg); border: 2px solid var(--primary); border-radius: 18px; padding: 40px; text-align: center; box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.25);
+    }
+    .price-strike { text-decoration: line-through; color: var(--text-muted); font-size: 1.3rem; }
+    .price-big { font-size: 3.5rem; font-weight: 900; color: var(--success); margin: 10px 0; }
+    .price-badge { background: #1e3a8a; color: #93c5fd; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+    .feature-list { text-align: left; margin: 30px 0; }
+    .feature-list li { padding: 8px 0; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+
+    /* Modal Demo */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
+    .modal-content { background: var(--bg); border: 1px solid var(--card-border); border-radius: 14px; width: 100%; max-width: 950px; height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-header { padding: 14px 20px; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); }
+    .modal-iframe { flex: 1; border: none; width: 100%; height: 100%; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--card-border); padding: 40px 0; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <div class="logo">
+      <span>⚡</span> Suite PyME & Freelance Pro
+    </div>
+    <a href="#comprar" class="nav-cta" onclick="trackClick('nav_comprar')">Obtener Licencia ($99 MXN)</a>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero container">
+    <div class="badge-promo">🔥 OFERTA DE LANZAMIENTO — PAGO ÚNICO DE POR VIDA</div>
+    <h1>Deja de regalar tu dinero en suscripciones.<br><span>Controla tus ventas, inventario y caja.</span></h1>
+    <p>La suite digital definitiva para tiendas, abarrotes, talleres, profesionales y freelancers. Sin mensualidades, funciona en tu celular o computadora, 100% privado y sin internet obligatorio.</p>
+    
+    <div class="hero-actions">
+      <a href="#comprar" class="btn-main" onclick="trackClick('hero_comprar')">
+        Comprar Ahora por solo $99 MXN
+      </a>
+      <a href="demo.html" class="btn-demo" target="_blank">
+        👀 Probar Demo en Vivo Gratis
+      </a>
+    </div>
+
+    <div class="trust-bullets">
+      <span>🔒 Sin mensualidades ni cobros sorpresa</span>
+      <span>⚡ Descarga instantánea tras el pago</span>
+      <span>📱 Compatible con PC, Mac, Android y iPhone</span>
+      <span>🛡️ Garantía de satisfacción 100%</span>
+    </div>
+  </section>
+
+  <!-- COMPARISON -->
+  <section class="section container">
+    <h2 class="section-title">¿Por qué seguir pagando de más?</h2>
+    <p class="section-subtitle">Compara lo que gastas hoy frente a nuestra suite de pago único.</p>
+    
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Característica</th>
+          <th>Sistemas en la Nube Tradicionales</th>
+          <th>Libreta / Cuaderno de Papel</th>
+          <th class="highlight">Suite PyME Pro</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Costo mensual</b></td>
+          <td style="color: #ef4444;">$399 a $799 MXN al mes</td>
+          <td>$0 (pero pierdes ventas)</td>
+          <td class="highlight" style="color: #10b981;"><b>$0 (Pago único $99 MXN)</b></td>
+        </tr>
+        <tr>
+          <td><b>¿Funciona sin internet?</b></td>
+          <td>❌ No (se cae la red y no cobras)</td>
+          <td>✅ Sí</td>
+          <td class="highlight">✅ <b>100% Offline y Privado</b></td>
+        </tr>
+        <tr>
+          <td><b>Tickets digitales</b></td>
+          <td>Opcional (con cobro extra)</td>
+          <td>❌ No existen</td>
+          <td class="highlight">✅ <b>Envío directo por WhatsApp</b></td>
+        </tr>
+        <tr>
+          <td><b>Corte de Caja Diario</b></td>
+          <td>Complicado y con reportes lentos</td>
+          <td>Cuentas a mano propensas a error</td>
+          <td class="highlight">✅ <b>Corte automático X y Z en 1 clic</b></td>
+        </tr>
+        <tr>
+          <td><b>¿Quién es dueño de los datos?</b></td>
+          <td>La empresa del software</td>
+          <td>Tú (en hojas que se pueden mojar)</td>
+          <td class="highlight">✅ <b>Tú en tu propio equipo</b></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- WHAT IS INCLUDED -->
+  <section class="section container">
+    <h2 class="section-title">Todo lo que necesitas en un solo paquete</h2>
+    <p class="section-subtitle">Herramientas probadas para ahorrar tiempo y profesionalizar tu negocio desde hoy.</p>
+    
+    <div class="grid-cards">
+      <div class="card">
+        <div class="card-icon">🛒</div>
+        <h3>Caja POS Pro (Terminal de Ventas)</h3>
+        <p>Terminal interactiva para registrar productos, calcular cambio exacto al instante, tickets imprimibles o listos para mandar por WhatsApp con un toque.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Corte de Caja X & Z Automático</h3>
+        <p>Desglose claro de entradas en efectivo, tarjetas y transferencias bancarias. Reporte de ganancias y exportación directa a Excel con 1 clic.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>Control de Stock con Alerta Mínima</h3>
+        <p>Lleva el inventario de tus productos. Identifica al instante qué artículos se están agotando para reordenar a tiempo y nunca perder clientes.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📄</div>
+        <h3>Cotizador & Facturador Formal Pro</h3>
+        <p>Genera cotizaciones y recibos formales en PDF con el nombre de tu negocio y agrega un botón directo para que tus clientes te paguen con PayPal.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <h3>Plantillas Maestras de Finanzas</h3>
+        <p>Hojas de cálculo listas para usar en Excel y Google Sheets con el cálculo de ingresos, gastos y margen de ganancia anual.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚀</div>
+        <h3>Guía Rápida de Puesta en Marcha</h3>
+        <p>Manual interactivo de 3 minutos para comenzar a vender de inmediato en tu celular, tablet o computadora sin configuraciones técnicas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING & CHECKOUT -->
+  <section id="comprar" class="section container">
+    <div class="pricing-box">
+      <span class="price-badge">LICENCIA DE POR VIDA</span>
+      <h3 style="margin-top: 14px; font-size: 1.6rem;">Suite PyME & Freelance Pro 2026</h3>
+      <div class="price-strike">$299 MXN</div>
+      <div class="price-big">$99 <span style="font-size: 1.2rem; color: var(--text-muted);">MXN</span></div>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Pago único para siempre. Sin mensualidades. Descarga instantánea.</p>
+
+      <ul class="feature-list">
+        <li>✅ Terminal Caja POS Pro (Celular y PC)</li>
+        <li>✅ Envío de tickets por WhatsApp & Impresión térmica</li>
+        <li>✅ Generador de Cotizaciones y Recibos PDF</li>
+        <li>✅ Control de Stock y Alertas de Reorden</li>
+        <li>✅ Plantillas Financieras Excel / Google Sheets</li>
+        <li>✅ Respaldos locales de datos 100% privados</li>
+        <li>✅ Actualizaciones y soporte garantizado</li>
+      </ul>
+
+      <!-- CHECKOUT PAYPAL CONTAINER -->
+      <div id="paypal-button-container" style="margin-top: 20px;">
+        <!-- Botón Directo PayPal / Tarjeta -->
+        <a href="https://paypal.me/maxter19/99MXN" target="_blank" class="btn-main" style="display: block; text-decoration: none; text-align: center; width: 100%;" onclick="mostrarModalConfirmacion()">
+          💳 Comprar con PayPal / Tarjeta ($99 MXN)
+        </a>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 12px;">
+        🔒 Pago 100% protegido por PayPal. Al completar tu pago de $99 MXN, tu descarga se desbloquea al instante.
+      </p>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL POST-PAGO INSTANTANEO -->
+<div id="modal-post-pago" class="modal-overlay">
+  <div class="modal-content" style="max-width: 500px; height: auto; padding: 24px; text-align: center;">
+    <div style="font-size: 2.5rem; margin-bottom: 10px;">💳</div>
+    <h3 style="color: #38bdf8; font-size: 1.4rem; margin-bottom: 8px;">Completando tu Pago Seguro</h3>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+      Se ha abierto la ventana segura de PayPal para transferir los <b>$99.00 MXN</b> a <b>maxter19</b>.<br><br>
+      Una vez que confirmes tu pago en PayPal, haz clic en el botón de abajo para acceder de inmediato a la descarga de la Suite:
+    </p>
+    <a href="/entrega" class="btn-main" style="display: block; width: 100%; text-decoration: none; margin-bottom: 10px;">
+      ✅ Ya completé mi pago — Descargar Suite
+    </a>
+    <button onclick="cerrarModalPostPago()" style="background: none; border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
+      Regresar
+    </button>
+  </div>
+</div>
+
+<!-- MODAL DEMO INTERACTIVA -->
+<div id="demo-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div style="font-weight: bold; color: var(--accent);">🧪 Demo Interactiva — Caja POS Pro</div>
+      <button onclick="closeDemo()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    </div>
+    <iframe id="demo-frame" class="modal-iframe" src="/demo"></iframe>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>© 2026 Suite PyME Pro. Diseñado para potenciar pequeños negocios y profesionales independientes.</p>
+    <p style="margin-top: 8px;">Garantía de reembolso de 7 días si el producto no cumple tus expectativas.</p>
+  </div>
+</footer>
+
+<script>
+// Registrar visita inicial
+fetch('/api/registrar_visita', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ referrer: document.referrer, userAgent: navigator.userAgent })
+}).catch(()=>{});
+
+function trackClick(source) {
+  fetch('/api/click_comprar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ source })
+  }).catch(()=>{});
+}
+
+function mostrarModalConfirmacion() {
+  trackClick('checkout_iniciado');
+  setTimeout(() => {
+    document.getElementById('modal-post-pago').style.display = 'flex';
+  }, 400);
+}
+
+function cerrarModalPostPago() {
+  document.getElementById('modal-post-pago').style.display = 'none';
+}
+
+function openDemo() {
+  document.getElementById('demo-modal').style.display = 'flex';
+}
+
+function closeDemo() {
+  document.getElementById('demo-modal').style.display = 'none';
+}
+
+function iniciarPagoPayPal() {
+  trackClick('boton_pago_paypal');
+  // Redirección al checkout seguro de PayPal configurado por el servidor
+  window.location.href = '/checkout-paypal';
+}
+</script>
+</body>
+</html>
