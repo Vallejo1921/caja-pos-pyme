@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caja POS Pro — Control de Ventas e Inventario</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --accent: #8b5cf6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 1.2rem; color: #38bdf8; }
+    .nav-tabs { display: flex; gap: 8px; }
+    .tab-btn {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .tab-btn.active, .tab-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .main-container { flex: 1; display: grid; grid-template-columns: 1fr 380px; gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; width: 100%; }
+    @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    
+    .search-bar { display: flex; gap: 10px; margin-bottom: 12px; }
+    .input-field {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+    .input-field:focus { outline: none; border-color: var(--primary); }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      max-height: calc(100vh - 220px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .product-btn {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.1s, border-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 95px;
+    }
+    .product-btn:hover { border-color: #38bdf8; transform: translateY(-2px); }
+    .product-btn .p-name { font-weight: 600; font-size: 0.9rem; color: #f1f5f9; line-height: 1.2; margin-bottom: 6px; }
+    .product-btn .p-price { color: #34d399; font-weight: bold; font-size: 1.05rem; }
+    .product-btn .p-stock { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* Cart Column */
+    .cart-container { display: flex; flex-direction: column; height: calc(100vh - 120px); }
+    .cart-items { flex: 1; overflow-y: auto; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .cart-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #243046; font-size: 0.9rem; }
+    .cart-row-info { flex: 1; }
+    .qty-controls { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .btn-circle { width: 24px; height: 24px; border-radius: 6px; border: none; background: #334155; color: white; cursor: pointer; font-weight: bold; }
+    .btn-circle:hover { background: var(--primary); }
+    .cart-total-box { background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+    .total-line { display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: bold; color: #34d399; }
+
+    .btn-action {
+      background: var(--success);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-action:hover { background: #059669; }
+    .btn-clear { background: #334155; color: #cbd5e1; margin-top: 6px; }
+    .btn-clear:hover { background: var(--danger); color: white; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; width: 90%; max-width: 450px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+    
+    .quick-cash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0; }
+    .quick-cash-btn { background: #334155; border: none; color: white; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .quick-cash-btn:hover { background: var(--primary); }
+
+    .receipt-print {
+      background: white; color: black; padding: 16px; border-radius: 6px; font-family: monospace; font-size: 12px; line-height: 1.4; margin-top: 12px;
+    }
+    .receipt-print hr { border: none; border-top: 1px dashed black; margin: 8px 0; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-2Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+    <span>Caja POS Pro</span>
+    <span style="font-size: 0.75rem; background: #0284c7; color: white; padding: 2px 6px; border-radius: 4px;">v1.0 Offline</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchView('pos')">🛒 Terminal Caja</button>
+    <button class="tab-btn" onclick="switchView('inventario')">📦 Inventario</button>
+    <button class="tab-btn" onclick="switchView('corte')">📊 Corte Diario</button>
+    <button class="tab-btn" onclick="switchView('ajustes')">⚙️ Ajustes / Backup</button>
+  </div>
+</header>
+
+<!-- VISTA 1: POS -->
+<div id="view-pos" class="main-container">
+  <div class="card">
+    <div class="search-bar">
+      <input type="text" id="pos-search" class="input-field" placeholder="🔍 Buscar producto por nombre o código..." oninput="renderPosProducts()">
+      <select id="pos-filter-cat" class="input-field" style="width: 180px;" onchange="renderPosProducts()">
+        <option value="">Todas las categorías</option>
+      </select>
+    </div>
+    <div id="pos-products-grid" class="products-grid"></div>
+  </div>
+
+  <div class="card cart-container">
+    <h3 style="margin-bottom: 10px; display: flex; justify-content: space-between;">
+      <span>Ticket Actual</span>
+      <span id="cart-item-count" style="font-size: 0.85rem; color: var(--text-muted);">0 items</span>
+    </h3>
+    <div id="cart-items-list" class="cart-items">
+      <div style="text-align: center; color: var(--text-muted); margin-top: 40px;">Ticket vacío.<br>Toca un producto para agregar.</div>
+    </div>
+    <div class="cart-total-box">
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">
+        <span>Artículos:</span>
+        <span id="cart-total-qty">0</span>
+      </div>
+      <div class="total-line">
+        <span>TOTAL:</span>
+        <span id="cart-total-amount">$0.00</span>
+      </div>
+    </div>
+    <button class="btn-action" onclick="openCheckoutModal()">💳 Cobrar Ticket (F12)</button>
+    <button class="btn-action btn-clear" onclick="clearCart()">🗑️ Cancelar Ticket</button>
+  </div>
+</div>
+
+<!-- VISTA 2: INVENTARIO -->
+<div id="view-inventario" class="main-container hidden" style="grid-template-columns: 1fr;">
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+      <h2>📦 Catálogo de Productos e Inventario</h2>
+      <button class="btn-action" style="width: auto; padding: 8px 16px;" onclick="openProductModal()">+ Nuevo Producto</button>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted);">
+            <th style="padding: 10px;">Código</th>
+            <th style="padding: 10px;">Nombre</th>
+            <th style="padding: 10px;">Categoría</th>
+            <th style="padding: 10px;">Costo</th>
+            <th style="padding: 10px;">Precio Venta</th>
+            <th style="padding: 10px;">Stock</th>
+            <th style="padding: 10px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="inventory-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- VISTA 3: CORTE DE CAJA -->
+<div id="view-corte" class="main-container hidden" style="grid-template-columns: 1fr 340px;">
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2>📊 Ventas del Día y Corte de Caja</h2>
+      <button class="btn-action" style="width: auto; padding: 8px 16px;" onclick="exportSalesToCSV()">📥 Exportar a Excel (CSV)</button>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted);">
+            <th style="padding: 8px;">Hora</th>
+            <th style="padding: 8px;">Ticket #</th>
+            <th style="padding: 8px;">Método</th>
+            <th style="padding: 8px;">Total</th>
+            <th style="padding: 8px;">Detalle</th>
+          </tr>
+        </thead>
+        <tbody id="corte-sales-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Resumen de Caja</h3>
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 12px 0;">
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; justify-content: space-between;"><span>💵 Efectivo:</span><b id="corte-efectivo">$0.00</b></div>
+      <div style="display: flex; justify-content: space-between;"><span>💳 Tarjeta:</span><b id="corte-tarjeta">$0.00</b></div>
+      <div style="display: flex; justify-content: space-between;"><span>📲 Transferencia:</span><b id="corte-transferencia">$0.00</b></div>
+      <hr style="border: none; border-top: 1px dashed var(--border);">
+      <div style="display: flex; justify-content: space-between; font-size: 1.1rem; color: #34d399;"><span>Total Vendido:</span><b id="corte-total-vendido">$0.00</b></div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #38bdf8;"><span>Ganancia Estimada:</span><b id="corte-ganancia">$0.00</b></div>
+      <button class="btn-action" style="margin-top: 20px; background: #8b5cf6;" onclick="printCorteSummary()">🖨️ Imprimir Corte Diario</button>
+    </div>
+  </div>
+</div>
+
+<!-- VISTA 4: AJUSTES -->
+<div id="view-ajustes" class="main-container hidden" style="grid-template-columns: 1fr;">
+  <div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2>⚙️ Configuración del Negocio</h2>
+    <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div>
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Nombre del Negocio:</label>
+        <input type="text" id="cfg-nombre" class="input-field" placeholder="Mi Tiendita / Taller / Local">
+      </div>
+      <div>
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Teléfono / WhatsApp:</label>
+        <input type="text" id="cfg-tel" class="input-field" placeholder="10 dígitos">
+      </div>
+      <div>
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Mensaje de pie de ticket:</label>
+        <input type="text" id="cfg-mensaje" class="input-field" value="¡Gracias por su compra! Vuelva pronto.">
+      </div>
+      <button class="btn-action" onclick="saveSettings()">Guardar Cambios</button>
+
+      <hr style="border: none; border-top: 1px solid var(--border); margin: 12px 0;">
+      <h3>Respaldo y Seguridad</h3>
+      <div style="display: flex; gap: 10px; margin-top: 8px;">
+        <button class="btn-action" style="background: #0284c7;" onclick="exportFullBackup()">💾 Descargar Respaldo JSON</button>
+        <button class="btn-action" style="background: #475569;" onclick="document.getElementById('import-file').click()">📂 Cargar Respaldo</button>
+        <input type="file" id="import-file" style="display:none" onchange="importFullBackup(event)" accept=".json">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COBRO -->
+<div id="checkout-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Cobrar Ticket</h3>
+    <div style="margin: 12px 0; font-size: 1.5rem; text-align: center; color: #34d399; font-weight: bold;" id="checkout-amount-display">$0.00</div>
+    
+    <label style="font-size: 0.85rem; color: var(--text-muted);">Método de Pago:</label>
+    <select id="checkout-method" class="input-field" style="margin-top: 4px;" onchange="updateCheckoutMethod()">
+      <option value="Efectivo">💵 Efectivo</option>
+      <option value="Tarjeta">💳 Tarjeta (Terminal)</option>
+      <option value="Transferencia">📲 Transferencia / SPEI</option>
+    </select>
+
+    <div id="cash-calculator-section" style="margin-top: 12px;">
+      <label style="font-size: 0.85rem; color: var(--text-muted);">Paga con (Efectivo recibido):</label>
+      <input type="number" id="cash-received-input" class="input-field" style="font-size: 1.2rem; font-weight: bold;" oninput="calcChange()">
+      
+      <div class="quick-cash-grid">
+        <button class="quick-cash-btn" onclick="setCashReceived(50)">$50</button>
+        <button class="quick-cash-btn" onclick="setCashReceived(100)">$100</button>
+        <button class="quick-cash-btn" onclick="setCashReceived(200)">$200</button>
+        <button class="quick-cash-btn" onclick="setCashReceived(500)">$500</button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 1.1rem;">
+        <span>Cambio a devolver:</span>
+        <b id="cash-change-display" style="color: #38bdf8;">$0.00</b>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button class="btn-action" onclick="finalizeSale()">✅ Confirmar Venta</button>
+      <button class="btn-action btn-clear" style="width: auto; padding: 10px 14px;" onclick="closeModal('checkout-modal')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TICKET / RECIBO -->
+<div id="receipt-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width: 380px;">
+    <h3>Venta Exitosa</h3>
+    <div id="receipt-container" class="receipt-print"></div>
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button class="btn-action" onclick="window.print()">🖨️ Imprimir</button>
+      <button class="btn-action" style="background: #25d366;" onclick="shareViaWhatsApp()">📲 Enviar WhatsApp</button>
+      <button class="btn-action btn-clear" onclick="closeModal('receipt-modal')">Listo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUCTO -->
+<div id="product-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="pmodal-title">Agregar Producto</h3>
+    <input type="hidden" id="pm-id">
+    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Código de Barras / SKU:</label>
+        <input type="text" id="pm-sku" class="input-field" placeholder="101">
+      </div>
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Nombre del Producto:</label>
+        <input type="text" id="pm-name" class="input-field" placeholder="Ej. Coca Cola 600ml">
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Costo ($):</label>
+          <input type="number" id="pm-cost" class="input-field" step="0.5" value="0">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Precio Venta ($):</label>
+          <input type="number" id="pm-price" class="input-field" step="0.5" value="0">
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Stock Actual:</label>
+          <input type="number" id="pm-stock" class="input-field" value="20">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Categoría:</label>
+          <input type="text" id="pm-cat" class="input-field" placeholder="Bebidas">
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-action" onclick="saveProduct()">Guardar Producto</button>
+        <button class="btn-action btn-clear" style="width: auto;" onclick="closeModal('product-modal')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- DATOS Y ESTADO ---
+const STORAGE_PREFIX = "pos_pro_";
+let products = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "products")) || [
+  { id: 1, sku: "101", name: "Refresco 600ml", cost: 12, price: 18, stock: 45, category: "Bebidas" },
+  { id: 2, sku: "102", name: "Papas Fritas 45g", cost: 11, price: 17, stock: 30, category: "Snacks" },
+  { id: 3, sku: "103", name: "Agua Natural 1L", cost: 7, price: 12, stock: 60, category: "Bebidas" },
+  { id: 4, sku: "104", name: "Galletas Choc 100g", cost: 13, price: 20, stock: 25, category: "Snacks" },
+  { id: 5, sku: "105", name: "Detergente 1Kg", cost: 26, price: 38, stock: 15, category: "Limpieza" },
+  { id: 6, sku: "106", name: "Aceite 1L", cost: 35, price: 48, stock: 18, category: "Abarrotes" }
+];
+let cart = [];
+let salesHistory = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "sales")) || [];
+let settings = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "settings")) || {
+  name: "Mi Negocio",
+  phone: "5551234567",
+  message: "¡Gracias por su preferencia!"
+};
+let lastReceiptData = null;
+
+function saveProducts() { localStorage.setItem(STORAGE_PREFIX + "products", JSON.stringify(products)); }
+function saveSales() { localStorage.setItem(STORAGE_PREFIX + "sales", JSON.stringify(salesHistory)); }
+
+// --- NAVEGACIÓN ---
+function switchView(viewName) {
+  ['pos', 'inventario', 'corte', 'ajustes'].forEach(v => {
+    document.getElementById('view-' + v).classList.add('hidden');
+  });
+  document.getElementById('view-' + viewName).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (viewName === 'pos') renderPosProducts();
+  if (viewName === 'inventario') renderInventoryTable();
+  if (viewName === 'corte') renderCorte();
+  if (viewName === 'ajustes') loadSettingsToUI();
+}
+
+// --- TERMINAL POS ---
+function renderPosProducts() {
+  const query = document.getElementById('pos-search').value.toLowerCase();
+  const cat = document.getElementById('pos-filter-cat').value;
+  const grid = document.getElementById('pos-products-grid');
+  grid.innerHTML = '';
+
+  // Actualizar categorías en selector
+  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const catSelect = document.getElementById('pos-filter-cat');
+  const curCatVal = catSelect.value;
+  catSelect.innerHTML = '<option value="">Todas las categorías</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+  catSelect.value = curCatVal;
+
+  const filtered = products.filter(p => {
+    const matchQuery = p.name.toLowerCase().includes(query) || (p.sku && p.sku.toLowerCase().includes(query));
+    const matchCat = !cat || p.category === cat;
+    return matchQuery && matchCat;
+  });
+
+  filtered.forEach(p => {
+    const btn = document.createElement('div');
+    btn.className = 'product-btn';
+    btn.onclick = () => addToCart(p.id);
+    btn.innerHTML = `
+      <div class="p-name">${p.name}</div>
+      <div>
+        <div class="p-price">$${p.price.toFixed(2)}</div>
+        <div class="p-stock">Stock: ${p.stock}</div>
+      </div>
+    `;
+    grid.appendChild(btn);
+  });
+}
+
+function addToCart(productId) {
+  const prod = products.find(p => p.id === productId);
+  if (!prod) return;
+  const existing = cart.find(item => item.id === productId);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({ id: prod.id, name: prod.name, price: prod.price, cost: prod.cost, qty: 1 });
+  }
+  updateCartUI();
+}
+
+function updateCartQty(productId, delta) {
+  const item = cart.find(i => i.id === productId);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) {
+    cart = cart.filter(i => i.id !== productId);
+  }
+  updateCartUI();
+}
+
+function clearCart() {
+  cart = [];
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const list = document.getElementById('cart-items-list');
+  if (cart.length === 0) {
+    list.innerHTML = '<div style="text-align: center; color: var(--text-muted); margin-top: 40px;">Ticket vacío.<br>Toca un producto para agregar.</div>';
+    document.getElementById('cart-item-count').innerText = "0 items";
+    document.getElementById('cart-total-qty').innerText = "0";
+    document.getElementById('cart-total-amount').innerText = "$0.00";
+    return;
+  }
+
+  list.innerHTML = '';
+  let totalQty = 0;
+  let totalAmount = 0;
+
+  cart.forEach(item => {
+    totalQty += item.qty;
+    const subtotal = item.price * item.qty;
+    totalAmount += subtotal;
+
+    const row = document.createElement('div');
+    row.className = 'cart-row';
+    row.innerHTML = `
+      <div class="cart-row-info">
+        <div><b>${item.name}</b></div>
+        <div style="color: var(--text-muted); font-size: 0.8rem;">$${item.price.toFixed(2)} c/u</div>
+        <div class="qty-controls">
+          <button class="btn-circle" onclick="updateCartQty(${item.id}, -1)">-</button>
+          <span><b>${item.qty}</b></span>
+          <button class="btn-circle" onclick="updateCartQty(${item.id}, 1)">+</button>
+        </div>
+      </div>
+      <div style="font-weight: bold; color: #34d399;">$${subtotal.toFixed(2)}</div>
+    `;
+    list.appendChild(row);
+  });
+
+  document.getElementById('cart-item-count').innerText = `${cart.length} productos`;
+  document.getElementById('cart-total-qty').innerText = totalQty;
+  document.getElementById('cart-total-amount').innerText = `$${totalAmount.toFixed(2)}`;
+}
+
+// --- CHECKOUT & PAGO ---
+function openCheckoutModal() {
+  if (cart.length === 0) return alert("Agrega al menos un producto al ticket");
+  const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+  document.getElementById('checkout-amount-display').innerText = `$${total.toFixed(2)}`;
+  document.getElementById('cash-received-input').value = total;
+  calcChange();
+  document.getElementById('checkout-modal').style.display = 'flex';
+}
+
+function updateCheckoutMethod() {
+  const method = document.getElementById('checkout-method').value;
+  const cashSec = document.getElementById('cash-calculator-section');
+  cashSec.style.display = (method === 'Efectivo') ? 'block' : 'none';
+}
+
+function setCashReceived(val) {
+  document.getElementById('cash-received-input').value = val;
+  calcChange();
+}
+
+function calcChange() {
+  const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+  const rec = parseFloat(document.getElementById('cash-received-input').value) || 0;
+  const change = Math.max(0, rec - total);
+  document.getElementById('cash-change-display').innerText = `$${change.toFixed(2)}`;
+}
+
+function finalizeSale() {
+  const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+  const method = document.getElementById('checkout-method').value;
+  const received = parseFloat(document.getElementById('cash-received-input').value) || total;
+  const change = (method === 'Efectivo') ? Math.max(0, received - total) : 0;
+  
+  const ticketId = 'T-' + String(salesHistory.length + 1).padStart(5, '0');
+  const now = new Date();
+  
+  // Rebajar inventario
+  cart.forEach(ci => {
+    const prod = products.find(p => p.id === ci.id);
+    if (prod) prod.stock = Math.max(0, prod.stock - ci.qty);
+  });
+  saveProducts();
+
+  const saleRecord = {
+    ticketId,
+    timestamp: now.toISOString(),
+    displayTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    items: [...cart],
+    total,
+    cost: cart.reduce((acc, i) => acc + ((i.cost || 0) * i.qty), 0),
+    method,
+    received,
+    change
+  };
+
+  salesHistory.push(saleRecord);
+  saveSales();
+
+  lastReceiptData = saleRecord;
+  closeModal('checkout-modal');
+  clearCart();
+  renderPosProducts();
+  showReceipt(saleRecord);
+}
+
+function showReceipt(sale) {
+  const container = document.getElementById('receipt-container');
+  let itemsLines = sale.items.map(i => `${i.qty}x ${i.name.padEnd(16).slice(0,16)} $${(i.price*i.qty).toFixed(2)}`).join('\n');
+  
+  container.innerText = 
+`================================
+      ${settings.name.toUpperCase()}
+  Tel: ${settings.phone}
+================================
+Ticket: ${sale.ticketId}
+Fecha:  ${new Date(sale.timestamp).toLocaleString()}
+Metodo: ${sale.method}
+--------------------------------
+${itemsLines}
+--------------------------------
+TOTAL:             $${sale.total.toFixed(2)}
+Recibido:          $${sale.received.toFixed(2)}
+Cambio:            $${sale.change.toFixed(2)}
+================================
+  ${settings.message}
+================================`;
+
+  document.getElementById('receipt-modal').style.display = 'flex';
+}
+
+function shareViaWhatsApp() {
+  if (!lastReceiptData) return;
+  const text = encodeURIComponent(document.getElementById('receipt-container').innerText);
+  window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+}
+
+// --- INVENTARIO ---
+function renderInventoryTable() {
+  const tbody = document.getElementById('inventory-table-body');
+  tbody.innerHTML = '';
+  products.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.innerHTML = `
+      <td style="padding: 8px;">${p.sku || '-'}</td>
+      <td style="padding: 8px; font-weight: 600;">${p.name}</td>
+      <td style="padding: 8px;">${p.category || '-'}</td>
+      <td style="padding: 8px;">$${(p.cost || 0).toFixed(2)}</td>
+      <td style="padding: 8px; color: #34d399; font-weight: bold;">$${p.price.toFixed(2)}</td>
+      <td style="padding: 8px;"><b style="${p.stock <= 5 ? 'color: var(--danger)' : ''}">${p.stock}</b></td>
+      <td style="padding: 8px;">
+        <button style="background: none; border: 1px solid var(--border); color: #38bdf8; padding: 4px 8px; border-radius: 4px; cursor: pointer;" onclick="editProduct(${p.id})">Editar</button>
+        <button style="background: none; border: 1px solid var(--border); color: var(--danger); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 4px;" onclick="deleteProduct(${p.id})">Borrar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openProductModal() {
+  document.getElementById('pmodal-title').innerText = "Nuevo Producto";
+  document.getElementById('pm-id').value = "";
+  document.getElementById('pm-sku').value = "";
+  document.getElementById('pm-name').value = "";
+  document.getElementById('pm-cost').value = 0;
+  document.getElementById('pm-price').value = 0;
+  document.getElementById('pm-stock').value = 10;
+  document.getElementById('pm-cat').value = "";
+  document.getElementById('product-modal').style.display = 'flex';
+}
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('pmodal-title').innerText = "Editar Producto";
+  document.getElementById('pm-id').value = p.id;
+  document.getElementById('pm-sku').value = p.sku || "";
+  document.getElementById('pm-name').value = p.name;
+  document.getElementById('pm-cost').value = p.cost || 0;
+  document.getElementById('pm-price').value = p.price;
+  document.getElementById('pm-stock').value = p.stock;
+  document.getElementById('pm-cat').value = p.category || "";
+  document.getElementById('product-modal').style.display = 'flex';
+}
+
+function saveProduct() {
+  const id = document.getElementById('pm-id').value;
+  const name = document.getElementById('pm-name').value.trim();
+  const price = parseFloat(document.getElementById('pm-price').value) || 0;
+  const cost = parseFloat(document.getElementById('pm-cost').value) || 0;
+  const stock = parseInt(document.getElementById('pm-stock').value) || 0;
+  const sku = document.getElementById('pm-sku').value.trim();
+  const cat = document.getElementById('pm-cat').value.trim();
+
+  if (!name || price <= 0) return alert("Nombre y precio válidos requeridos");
+
+  if (id) {
+    const p = products.find(x => x.id == id);
+    if (p) {
+      p.name = name; p.price = price; p.cost = cost; p.stock = stock; p.sku = sku; p.category = cat;
+    }
+  } else {
+    products.push({ id: Date.now(), sku, name, cost, price, stock, category: cat });
+  }
+  saveProducts();
+  closeModal('product-modal');
+  renderInventoryTable();
+}
+
+function deleteProduct(id) {
+  if (!confirm("¿Eliminar este producto?")) return;
+  products = products.filter(p => p.id !== id);
+  saveProducts();
+  renderInventoryTable();
+}
+
+// --- CORTE DE CAJA ---
+function renderCorte() {
+  const tbody = document.getElementById('corte-sales-body');
+  tbody.innerHTML = '';
+
+  let efectivo = 0, tarjeta = 0, transferencia = 0, total = 0, costoTotal = 0;
+
+  salesHistory.slice().reverse().forEach(s => {
+    total += s.total;
+    costoTotal += (s.cost || 0);
+    if (s.method === 'Efectivo') efectivo += s.total;
+    if (s.method === 'Tarjeta') tarjeta += s.total;
+    if (s.method === 'Transferencia') transferencia += s.total;
+
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.innerHTML = `
+      <td style="padding: 8px;">${s.displayTime}</td>
+      <td style="padding: 8px; font-weight: 600;">${s.ticketId}</td>
+      <td style="padding: 8px;">${s.method}</td>
+      <td style="padding: 8px; color: #34d399; font-weight: bold;">$${s.total.toFixed(2)}</td>
+      <td style="padding: 8px; font-size: 0.8rem; color: var(--text-muted);">${s.items.map(i => `${i.qty}x ${i.name}`).join(', ')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('corte-efectivo').innerText = `$${efectivo.toFixed(2)}`;
+  document.getElementById('corte-tarjeta').innerText = `$${tarjeta.toFixed(2)}`;
+  document.getElementById('corte-transferencia').innerText = `$${transferencia.toFixed(2)}`;
+  document.getElementById('corte-total-vendido').innerText = `$${total.toFixed(2)}`;
+  document.getElementById('corte-ganancia').innerText = `$${(total - costoTotal).toFixed(2)}`;
+}
+
+function exportSalesToCSV() {
+  if (salesHistory.length === 0) return alert("No hay ventas para exportar");
+  let csv = "Ticket,Fecha,Metodo,Total,Costo,Ganancia,Articulos\n";
+  salesHistory.forEach(s => {
+    const ganancia = s.total - (s.cost || 0);
+    const desc = s.items.map(i => `${i.qty}x ${i.name}`).join('; ');
+    csv += `"${s.ticketId}","${s.timestamp}","${s.method}",${s.total},${s.cost || 0},${ganancia},"${desc}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Ventas_Corte_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// --- AJUSTES Y BACKUP ---
+function loadSettingsToUI() {
+  document.getElementById('cfg-nombre').value = settings.name || "";
+  document.getElementById('cfg-tel').value = settings.phone || "";
+  document.getElementById('cfg-mensaje').value = settings.message || "";
+}
+
+function saveSettings() {
+  settings.name = document.getElementById('cfg-nombre').value;
+  settings.phone = document.getElementById('cfg-tel').value;
+  settings.message = document.getElementById('cfg-mensaje').value;
+  localStorage.setItem(STORAGE_PREFIX + "settings", JSON.stringify(settings));
+  alert("Configuración guardada correctamente");
+}
+
+function exportFullBackup() {
+  const data = { products, salesHistory, settings, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Backup_CajaPOS_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importFullBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const data = JSON.parse(event.target.result);
+      if (data.products && Array.isArray(data.products)) {
+        products = data.products;
+        salesHistory = data.salesHistory || [];
+        settings = data.settings || settings;
+        saveProducts();
+        saveSales();
+        localStorage.setItem(STORAGE_PREFIX + "settings", JSON.stringify(settings));
+        alert("¡Copia de seguridad restaurada con éxito!");
+        renderPosProducts();
+      }
+    } catch (err) { alert("Archivo JSON no válido"); }
+  };
+  reader.readAsText(file);
+}
+
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// Init
+renderPosProducts();
+</script>
+</body>
+</html>
